@@ -140,7 +140,6 @@ def open_note_creator():
             empty_label.grid_forget()
         save_note_to_file(note_data)
         display_note(note_data)
-
     note_creator = NoteCreator(app, categories=["Praca", "Osobiste", "Nauka"], on_save=on_save)
     note_creator.grab_set()
 
