@@ -36,9 +36,11 @@ right_buttons_frame.grid(row=0, column=1, sticky="e")
 
 btn_right_1 = tb.Button(right_buttons_frame, text="Zmień tryb na jasny/ciemny", bootstyle="info-outline")
 btn_right_2 = tb.Button(right_buttons_frame, text="Zintegruj z kalendarzem", bootstyle="primary-outline")
+btn_right_3 = tb.Button(right_buttons_frame, text="Eksportuj do PDF", bootstyle="primary-outline")
 
 btn_right_1.pack(side="top", fill="x", pady=5)
 btn_right_2.pack(side="top", fill="x", pady=5)
+btn_right_3.pack(side="top", fill="x", pady=5)
 
 separator = ttk.Separator(app, orient='horizontal')
 separator.grid(row=1, column=0, columnspan=2, sticky="ew", padx=10)
