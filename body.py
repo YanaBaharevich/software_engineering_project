@@ -4,6 +4,21 @@ from ttkthemes import ThemedTk
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from note_creator import NoteCreator
+import json
+import os
+
+NOTES_FILE = "saved_notes.json"
+def load_notes():
+    if os.path.exists(NOTES_FILE):
+        with open(NOTES_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+def save_note_to_file(note_data):
+    notes = load_notes()
+    notes.append(note_data)
+    with open(NOTES_FILE, "w", encoding="utf-8") as f:
+        json.dump(notes, f, ensure_ascii=False, indent=4)
+
 
 
 app = tb.Window(themename="vapor")
@@ -63,58 +78,74 @@ empty_label.grid(row=0, column=0, sticky="nsew")
 notes_container = tb.Frame(notes_frame)
 notes_container.grid(row=0, column=0, sticky="nsew")
 
-
 max_columns = 4
 note_count = 0
 
-def open_note_creator():
-    def on_save(note_data):
-        global note_count
+# lodowanie notatek
+def display_note(note_data):
+    global note_count
+    row = note_count // max_columns
+    column = max_columns - 1 - (note_count % max_columns)
+
+    note_frame = tb.Frame(
+        notes_container,
+        width=250,
+        height=250,
+        relief="raised",
+        borderwidth=2
+    )
+    note_frame.grid(row=row, column=column, padx=10, pady=10)
+    note_frame.pack_propagate(False)
+
+    title_label = tb.Label(note_frame, text=note_data["title"], font=("Arial", 14, "bold"), wraplength=230)
+    title_label.pack(pady=(10, 5))
+
+    tags_frame = tb.Frame(note_frame)
+    tags_frame.pack(pady=5)
+    colors = ["#FF6666", "#66CC66", "#6699FF", "#FFCC33", "#3399FF", "#FF33AA"]
+    for i, tag in enumerate(note_data["tags"]):
+        color = colors[i % len(colors)]
+        tag_label = tk.Label(
+            tags_frame,
+            text=tag,
+            bg=color,
+            fg="black",
+            font=("Arial", 10, "bold"),
+            padx=6,
+            pady=2,
+            borderwidth=1,
+            relief="solid"
+        )
+        tag_label.pack(side="left", padx=3)
+
+    category_label = tb.Label(note_frame, text=f"Kategoria: {note_data['category']}", font=("Arial", 10, "italic"))
+    category_label.pack(side="bottom", pady=(10, 5))
+
+    note_count += 1
+
+
+def load_saved_notes():
+    global note_count
+    saved_notes = load_notes()
+    if saved_notes:
         if empty_label.winfo_ismapped():
             empty_label.grid_forget()
+    for note_data in saved_notes:
+        display_note(note_data)
 
-        row = note_count // max_columns
-        column = max_columns - 1 - (note_count % max_columns)
 
-        note_frame = tb.Frame(
-            notes_container,
-            width=250,
-            height=250,
-            relief="raised",
-            borderwidth=2
-        )
-        note_frame.grid(row=row, column=column, padx=10, pady=10)
-        note_frame.pack_propagate(False)
-
-        title_label = tb.Label(note_frame, text=note_data["title"], font=("Arial", 14, "bold"), wraplength=230)
-        title_label.pack(pady=(10, 5))
-
-        tags_frame = tb.Frame(note_frame)
-        tags_frame.pack(pady=5)
-        colors = ["#FF6666", "#66CC66", "#6699FF", "#FFCC33", "#3399FF", "#FF33AA"]
-        for i, tag in enumerate(note_data["tags"]):
-            color = colors[i % len(colors)]
-            tag_label = tk.Label(
-                tags_frame,
-                text=tag,
-                bg=color,
-                fg="black",
-                font=("Arial", 10, "bold"),
-                padx=6,
-                pady=2,
-                borderwidth=1,
-                relief="solid"
-            )
-            tag_label.pack(side="left", padx=3)
-
-        category_label = tb.Label(note_frame, text=f"Kategoria: {note_data['category']}", font=("Arial", 10, "italic"))
-        category_label.pack(side="bottom", pady=(10, 5))
-
-        note_count += 1
+def open_note_creator():
+    def on_save(note_data):
+        if empty_label.winfo_ismapped():
+            empty_label.grid_forget()
+        save_note_to_file(note_data)
+        display_note(note_data)
 
     note_creator = NoteCreator(app, categories=["Praca", "Osobiste", "Nauka"], on_save=on_save)
     note_creator.grab_set()
 
 
 btn_left_1.config(command=open_note_creator)
+load_saved_notes()
 app.mainloop()
+
