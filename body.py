@@ -5,6 +5,7 @@ import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from note_creator import NoteCreator
 
+
 app = tb.Window(themename="vapor")
 app.title("Notatnik")
 app.geometry("900x600")
@@ -58,9 +59,58 @@ notes_frame.columnconfigure(0, weight=1)
 empty_label = tk.Label(notes_frame, text="BRAK NOTATEK",
                  font=("Segoe UI", 30, "bold"),)
 empty_label.grid(row=0, column=0, sticky="nsew")
+
+notes_container = tb.Frame(notes_frame)
+notes_container.grid(row=0, column=0, sticky="nsew")
+
+
+max_columns = 4
+note_count = 0
+
 def open_note_creator():
     def on_save(note_data):
-        print("Zapisano notatkę:", note_data)
+        global note_count
+        if empty_label.winfo_ismapped():
+            empty_label.grid_forget()
+
+        row = note_count // max_columns
+        column = max_columns - 1 - (note_count % max_columns)
+
+        note_frame = tb.Frame(
+            notes_container,
+            width=250,
+            height=250,
+            relief="raised",
+            borderwidth=2
+        )
+        note_frame.grid(row=row, column=column, padx=10, pady=10)
+        note_frame.pack_propagate(False)
+
+        title_label = tb.Label(note_frame, text=note_data["title"], font=("Arial", 14, "bold"), wraplength=230)
+        title_label.pack(pady=(10, 5))
+
+        tags_frame = tb.Frame(note_frame)
+        tags_frame.pack(pady=5)
+        colors = ["#FF6666", "#66CC66", "#6699FF", "#FFCC33", "#3399FF", "#FF33AA"]
+        for i, tag in enumerate(note_data["tags"]):
+            color = colors[i % len(colors)]
+            tag_label = tk.Label(
+                tags_frame,
+                text=tag,
+                bg=color,
+                fg="black",
+                font=("Arial", 10, "bold"),
+                padx=6,
+                pady=2,
+                borderwidth=1,
+                relief="solid"
+            )
+            tag_label.pack(side="left", padx=3)
+
+        category_label = tb.Label(note_frame, text=f"Kategoria: {note_data['category']}", font=("Arial", 10, "italic"))
+        category_label.pack(side="bottom", pady=(10, 5))
+
+        note_count += 1
 
     note_creator = NoteCreator(app, categories=["Praca", "Osobiste", "Nauka"], on_save=on_save)
     note_creator.grab_set()

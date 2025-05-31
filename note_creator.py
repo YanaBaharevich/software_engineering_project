@@ -2,9 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 import tkinter.messagebox as messagebox
 from ttkbootstrap import Toplevel, Entry, Text, Button, Frame, Label, Combobox
-
-
-
 class NoteCreator(Toplevel):
     def __init__(self, parent, categories=None, on_save=None):
         super().__init__(parent)
