@@ -3,6 +3,7 @@ from tkinter import ttk
 from ttkthemes import ThemedTk
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from note_creator import NoteCreator
 
 app = tb.Window(themename="vapor")
 app.title("Notatnik")
@@ -57,5 +58,13 @@ notes_frame.columnconfigure(0, weight=1)
 empty_label = tk.Label(notes_frame, text="BRAK NOTATEK",
                  font=("Segoe UI", 30, "bold"),)
 empty_label.grid(row=0, column=0, sticky="nsew")
+def open_note_creator():
+    def on_save(note_data):
+        print("Zapisano notatkę:", note_data)
 
+    note_creator = NoteCreator(app, categories=["Praca", "Osobiste", "Nauka"], on_save=on_save)
+    note_creator.grab_set()
+
+
+btn_left_1.config(command=open_note_creator)
 app.mainloop()
