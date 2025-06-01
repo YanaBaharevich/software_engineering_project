@@ -8,6 +8,8 @@ import json
 import os
 
 NOTES_FILE = "saved_notes.json"
+
+
 def load_notes():
     global last_id
     if os.path.exists(NOTES_FILE):
@@ -18,12 +20,12 @@ def load_notes():
             return notes
     return []
 
+
 def save_note_to_file(note_data):
     notes = load_notes()
     notes.append(note_data)
     with open(NOTES_FILE, "w", encoding="utf-8") as f:
         json.dump(notes, f, ensure_ascii=False, indent=4)
-
 
 
 app = tb.Window(themename="vapor")
@@ -32,11 +34,11 @@ app.geometry("900x600")
 app.minsize(700, 500)
 app.style.configure('.', font=('Arial ', 13))
 
-app.rowconfigure(0, weight=0)     # Zona przycisków
-app.columnconfigure(0, weight=3)  # Lewa
-app.columnconfigure(1, weight=1)  # Prawa
+app.rowconfigure(0, weight=0)
+app.columnconfigure(0, weight=3)
+app.columnconfigure(1, weight=1)
 app.rowconfigure(1, weight=0)
-app.rowconfigure(2, weight=1)     # Zona notatek
+app.rowconfigure(2, weight=1)
 
 top_frame = tk.Frame(app)
 top_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=10, pady=10)
@@ -71,12 +73,35 @@ app.rowconfigure(2, weight=1)
 app.columnconfigure(0, weight=3)
 app.columnconfigure(1, weight=1)
 
+search_frame = tk.Frame(app)
+search_frame.grid(row=1, column=0, columnspan=2, sticky="ew", padx=10, pady=(0, 5))
+search_frame.columnconfigure(1, weight=1)
+
+tk.Label(search_frame, text="Szukaj:", font=("Arial", 12)).grid(row=0, column=0, padx=(0, 10))
+
+search_var = tk.StringVar()
+search_entry = tk.Entry(search_frame, textvariable=search_var, font=("Arial", 12))
+search_entry.grid(row=0, column=1, sticky="ew")
+
+tk.Label(search_frame, text="Filtruj kategorię:", font=("Arial", 12)).grid(row=0, column=2, padx=(20, 10))
+category_var = tk.StringVar()
+category_options = [""] + ["Praca", "Osobiste", "Nauka"]
+category_combo = ttk.Combobox(search_frame, textvariable=category_var, values=category_options, state="readonly",
+                              font=("Arial", 12), width=15)
+category_combo.grid(row=0, column=3, padx=(0, 10))
+
+tk.Label(search_frame, text="Filtruj tagi (oddziel przecinkami):", font=("Arial", 12)).grid(row=0, column=4,
+                                                                                            padx=(20, 10))
+tags_var = tk.StringVar()
+tags_entry = tk.Entry(search_frame, textvariable=tags_var, font=("Arial", 12), width=20)
+tags_entry.grid(row=0, column=5, sticky="ew")
+
 notes_frame = tk.Frame(app)
 notes_frame.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
 notes_frame.rowconfigure(0, weight=1)
 notes_frame.columnconfigure(0, weight=1)
 
-empty_label = tk.Label(notes_frame, text="BRAK NOTATEK",font=("Segoe UI", 30, "bold"),)
+empty_label = tk.Label(notes_frame, text="BRAK NOTATEK", font=("Segoe UI", 30, "bold"), )
 empty_label.grid(row=0, column=0, sticky="nsew")
 
 notes_container = tk.Frame(notes_frame)
@@ -85,7 +110,7 @@ notes_container.grid(row=0, column=0, sticky="nsew")
 max_columns = 4
 note_count = 0
 
-# lodowanie notatek
+
 def display_note(note_data):
     global note_count
     row = note_count // max_columns
@@ -107,6 +132,7 @@ def display_note(note_data):
 
     def on_enter(e):
         note_frame.config(relief="solid", borderwidth=3)
+
     def on_leave(e):
         note_frame.config(relief="raised", borderwidth=2)
 
@@ -127,13 +153,15 @@ def display_note(note_data):
         tags_frame = tk.Frame(info_win)
         tags_frame.pack(anchor="w", padx=10)
         for tag in note_data.get("Tagi", []):
-            tk.Label(tags_frame, text=tag, borderwidth=1, relief="solid", padx=5, pady=2).pack(side="left", padx=2,pady=2)
+            tk.Label(tags_frame, text=tag, borderwidth=1, relief="solid", padx=5, pady=2).pack(side="left", padx=2,
+                                                                                               pady=2)
 
         if "Zawartość" in note_data:
             content_text = tk.Text(info_win, wrap="word", height=10)
             content_text.pack(fill="both", expand=True, padx=10, pady=10)
             content_text.insert("1.0", note_data["Zawartość"])
             content_text.config(state="disabled")
+
     def on_click(e):
         if is_deleting:
             confirm_delete(note_data)
@@ -141,7 +169,6 @@ def display_note(note_data):
             open_note_editor(note_data)
         else:
             open_note_info(note_data)
-
 
     note_frame.bind("<Button-1>", on_click)
 
@@ -182,14 +209,57 @@ def display_note(note_data):
     note_count += 1
 
 
-def load_saved_notes():
+def load_saved_notes(filter_text="", category_filter="", tags_filter=None):
     global note_count
+    for widget in notes_container.winfo_children():
+        widget.destroy()
+    note_count = 0
+
     saved_notes = load_notes()
-    if saved_notes:
+    filtered_notes = []
+    filter_text_lower = filter_text.lower()
+    category_filter_lower = category_filter.lower()
+    tags_filter_lower = [tag.strip().lower() for tag in tags_filter] if tags_filter else []
+
+    for note_data in saved_notes:
+        title = note_data.get("Tytuł", "").lower()
+        tags = [tag.lower() for tag in note_data.get("Tagi", [])]
+        category = note_data.get("Kategoria", "").lower()
+        content = note_data.get("Zawartość", "").lower()
+
+        if (filter_text_lower in title or
+                any(filter_text_lower in tag for tag in tags) or
+                filter_text_lower in category or
+                filter_text_lower in content):
+
+            if category_filter_lower and category != category_filter_lower:
+                continue
+
+            if tags_filter_lower:
+                if not all(tag in tags for tag in tags_filter_lower):
+                    continue
+
+            filtered_notes.append(note_data)
+
+    if filtered_notes:
         if empty_label.winfo_ismapped():
             empty_label.grid_forget()
-    for note_data in saved_notes:
-        display_note(note_data)
+        for note_data in filtered_notes:
+            display_note(note_data)
+    else:
+        empty_label.grid(row=0, column=0, sticky="nsew")
+
+
+def on_filters_change(*args):
+    filter_text = search_var.get()
+    category_filter = category_var.get()
+    tags_filter = [tag.strip() for tag in tags_var.get().split(",") if tag.strip()]
+    load_saved_notes(filter_text, category_filter, tags_filter)
+
+
+search_var.trace_add("write", on_filters_change)
+category_var.trace_add("write", on_filters_change)
+tags_var.trace_add("write", on_filters_change)
 
 
 def open_note_creator():
@@ -198,8 +268,10 @@ def open_note_creator():
             empty_label.grid_forget()
         save_note_to_file(note_data)
         display_note(note_data)
+
     note_creator = NoteCreator(app, categories=["Praca", "Osobiste", "Nauka"], on_save=on_save)
     note_creator.grab_set()
+
 
 def remove_note(note_data):
     global is_deleting
@@ -219,7 +291,10 @@ def remove_note(note_data):
     is_deleting = False
     btn_left_2.config(bootstyle="danger-outline")
 
+
 is_deleting = False
+
+
 def toggle_delete_mode():
     global is_deleting
     is_deleting = not is_deleting
@@ -228,13 +303,15 @@ def toggle_delete_mode():
     else:
         btn_left_2.config(bootstyle="danger-outline")
 
+
 def confirm_delete(note_data):
     confirm_win = tk.Toplevel(app)
     confirm_win.title("Potwierdzenie usunięcia")
     confirm_win.geometry("300x150")
     confirm_win.grab_set()
 
-    tk.Label(confirm_win, text=f"Czy na pewno chcesz usunąć notatkę: {note_data['Tytuł']}?", font=("Arial", 12)).pack(pady=10)
+    tk.Label(confirm_win, text=f"Czy na pewno chcesz usunąć notatkę: {note_data['Tytuł']}?", font=("Arial", 12)).pack(
+        pady=10)
 
     btn_yes = tk.Button(confirm_win, text="Tak", command=lambda: [remove_note(note_data), confirm_win.destroy()])
     btn_no = tk.Button(confirm_win, text="Nie", command=confirm_win.destroy)
@@ -242,7 +319,10 @@ def confirm_delete(note_data):
     btn_yes.pack(side="left", padx=20, pady=10)
     btn_no.pack(side="right", padx=20, pady=10)
 
+
 is_editing = False
+
+
 def toggle_edit_mode():
     global is_editing
     is_editing = not is_editing
@@ -250,6 +330,7 @@ def toggle_edit_mode():
         btn_left_3.config(bootstyle="primary")
     else:
         btn_left_3.config(bootstyle="primary-outline")
+
 
 def open_note_editor(note_data):
     def on_save_edited_note(updated_note_data):
@@ -270,13 +351,34 @@ def open_note_editor(note_data):
         load_saved_notes()
         toggle_edit_mode()
 
-    NoteCreator(app, categories=["Praca", "Osobiste", "Nauka"], on_save=on_save_edited_note, note_data=note_data).grab_set()
-
+    NoteCreator(app, categories=["Praca", "Osobiste", "Nauka"], on_save=on_save_edited_note,
+                note_data=note_data).grab_set()
 
 
 btn_left_1.config(command=open_note_creator)
 btn_left_2.config(command=toggle_delete_mode)
 btn_left_3.config(command=toggle_edit_mode)
-load_saved_notes()
-app.mainloop()
 
+
+def toggle_theme():
+    current_theme = app.style.theme_use()
+    new_theme = "vapor" if current_theme != "vapor" else "darkly"
+    app.style.theme_use(new_theme)
+
+
+btn_right_1.config(command=toggle_theme)
+
+def integrate_calendar():
+    tk.messagebox.showinfo("Integracja z kalendarzem", "Funkcja w budowie")
+
+
+def export_pdf():
+    tk.messagebox.showinfo("Eksport do PDF", "Funkcja w budowie")
+
+
+btn_right_2.config(command=integrate_calendar)
+btn_right_3.config(command=export_pdf)
+
+load_saved_notes()
+
+app.mainloop()
