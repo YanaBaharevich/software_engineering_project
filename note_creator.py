@@ -75,13 +75,13 @@ class NoteCreator(Toplevel):
 
     def save_note(self):
         note_data = {
-            "title": self.title_entry.get().strip(),
-            "text": self.text_entry.get("1.0", "end-1c").strip(),
-            "category": self.category_var.get(),
-            "tags": self.tags,
-            "pin": self.pin_entry.get().strip(),
-            "reminder": self.reminder_entry.get().strip(),
-            "color": self.selected_color,
+            "Tytuł": self.title_entry.get().strip(),
+            "Zawartość": self.text_entry.get("1.0", "end-1c").strip(),
+            "Kategoria": self.category_var.get(),
+            "Tagi": self.tags,
+            "KodPIN": self.pin_entry.get().strip(),
+            "Przypomnienie": self.reminder_entry.get().strip(),
+            "Kolor": self.selected_color,
             "created": datetime.datetime.now().strftime("%Y-%m-%d"),
             "modified": datetime.datetime.now().strftime("%Y-%m-%d")
         }

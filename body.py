@@ -62,21 +62,21 @@ btn_right_3.pack(side="top", fill="x", pady=5)
 separator = ttk.Separator(app, orient='horizontal')
 separator.grid(row=1, column=0, columnspan=2, sticky="ew", padx=10)
 
-notes_frame = tb.Frame(app)
-notes_frame.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
-
 app.rowconfigure(2, weight=1)
 app.columnconfigure(0, weight=3)
 app.columnconfigure(1, weight=1)
+
+notes_frame = tk.Frame(app)
+notes_frame.grid(row=2, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
 notes_frame.rowconfigure(0, weight=1)
 notes_frame.columnconfigure(0, weight=1)
 
-empty_label = tk.Label(notes_frame, text="BRAK NOTATEK",
-                 font=("Segoe UI", 30, "bold"),)
+empty_label = tk.Label(notes_frame, text="BRAK NOTATEK",font=("Segoe UI", 30, "bold"),)
 empty_label.grid(row=0, column=0, sticky="nsew")
 
-notes_container = tb.Frame(notes_frame)
+notes_container = tk.Frame(notes_frame)
 notes_container.grid(row=0, column=0, sticky="nsew")
+
 
 max_columns = 4
 note_count = 0
@@ -86,31 +86,74 @@ def display_note(note_data):
     global note_count
     row = note_count // max_columns
     column = max_columns - 1 - (note_count % max_columns)
+    bg_color = note_data.get("color", "#FFFFFF")
 
-    note_frame = tb.Frame(
+    note_frame = tk.Frame(
         notes_container,
         width=250,
         height=250,
         relief="raised",
-        borderwidth=2
+        borderwidth=2,
+        bg=bg_color,
+        cursor="hand2"
     )
     note_frame.grid(row=row, column=column, padx=10, pady=10)
     note_frame.pack_propagate(False)
 
-    title_label = tb.Label(note_frame, text=note_data["title"], font=("Arial", 14, "bold"), wraplength=230)
+    def on_enter(e):
+        note_frame.config(relief="solid", borderwidth=3)
+    def on_leave(e):
+        note_frame.config(relief="raised", borderwidth=2)
+
+    note_frame.bind("<Enter>", on_enter)
+    note_frame.bind("<Leave>", on_leave)
+
+    def open_note_info(note_data):
+        info_win = tk.Toplevel(app)
+        info_win.title(note_data.get("Tytuł", "Brak tytułu"))
+        info_win.geometry("400x300")
+        info_win.grab_set()
+
+        tk.Label(info_win, text=note_data.get("Tytuł", ""), font=("Arial", 16, "bold")).pack(pady=10)
+        tk.Label(info_win, text=f"Kategoria: {note_data.get('Kategoria', '')}", font=("Arial", 12, "italic")).pack(
+            pady=5)
+
+        tk.Label(info_win, text="Tagi:", font=("Arial", 12, "underline")).pack(anchor="w", padx=10)
+        tags_frame = tk.Frame(info_win)
+        tags_frame.pack(anchor="w", padx=10)
+        for tag in note_data.get("Tagi", []):
+            tk.Label(tags_frame, text=tag, borderwidth=1, relief="solid", padx=5, pady=2).pack(side="left", padx=2,
+                                                                                               pady=2)
+
+        if "Zawartość" in note_data:
+            content_text = tk.Text(info_win, wrap="word", height=10)
+            content_text.pack(fill="both", expand=True, padx=10, pady=10)
+            content_text.insert("1.0", note_data["Zawartość"])
+            content_text.config(state="disabled")
+    def on_click(e):
+        open_note_info(note_data)
+
+    note_frame.bind("<Button-1>", on_click)
+
+    title_label = tk.Label(
+        note_frame,
+        text=note_data["Tytuł"],
+        font=("Arial", 14, "bold"),
+        wraplength=230,
+        bg=bg_color
+    )
     title_label.pack(pady=(10, 5))
 
-    tags_frame = tb.Frame(note_frame)
+    tags_frame = tk.Frame(note_frame, bg=bg_color)
     tags_frame.pack(pady=5)
+
     colors = ["#FF6666", "#66CC66", "#6699FF", "#FFCC33", "#3399FF", "#FF33AA"]
-    for i, tag in enumerate(note_data["tags"]):
+    for i, tag in enumerate(note_data["Tagi"]):
         color = colors[i % len(colors)]
         tag_label = tk.Label(
             tags_frame,
             text=tag,
             bg=color,
-            fg="black",
-            font=("Arial", 10, "bold"),
             padx=6,
             pady=2,
             borderwidth=1,
@@ -118,7 +161,12 @@ def display_note(note_data):
         )
         tag_label.pack(side="left", padx=3)
 
-    category_label = tb.Label(note_frame, text=f"Kategoria: {note_data['category']}", font=("Arial", 10, "italic"))
+    category_label = tk.Label(
+        note_frame,
+        text=f"Kategoria: {note_data['Kategoria']}",
+        font=("Arial", 10, "italic"),
+        bg=bg_color
+    )
     category_label.pack(side="bottom", pady=(10, 5))
 
     note_count += 1
