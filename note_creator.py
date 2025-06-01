@@ -5,7 +5,7 @@ from ttkbootstrap import Toplevel, Entry, Text, Button, Frame, Label, Combobox
 from tkinter import colorchooser
 import datetime
 
-
+last_id = 0
 class NoteCreator(Toplevel):
     def __init__(self, parent, categories=None, on_save=None):
         super().__init__(parent)
@@ -74,7 +74,10 @@ class NoteCreator(Toplevel):
             self.color_btn.configure(style=f"{color}.TButton")
 
     def save_note(self):
+        global last_id
+        last_id += 1
         note_data = {
+            "id": last_id,
             "Tytuł": self.title_entry.get().strip(),
             "Zawartość": self.text_entry.get("1.0", "end-1c").strip(),
             "Kategoria": self.category_var.get(),
@@ -85,7 +88,6 @@ class NoteCreator(Toplevel):
             "created": datetime.datetime.now().strftime("%Y-%m-%d"),
             "modified": datetime.datetime.now().strftime("%Y-%m-%d")
         }
-
         if self.on_save:
             self.on_save(note_data)
         self.destroy()

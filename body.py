@@ -9,10 +9,15 @@ import os
 
 NOTES_FILE = "saved_notes.json"
 def load_notes():
+    global last_id
     if os.path.exists(NOTES_FILE):
         with open(NOTES_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
+            notes = json.load(f)
+            if notes:
+                last_id = max(note.get("id", 0) for note in notes)
+            return notes
     return []
+
 def save_note_to_file(note_data):
     notes = load_notes()
     notes.append(note_data)
@@ -121,8 +126,7 @@ def display_note(note_data):
         tags_frame = tk.Frame(info_win)
         tags_frame.pack(anchor="w", padx=10)
         for tag in note_data.get("Tagi", []):
-            tk.Label(tags_frame, text=tag, borderwidth=1, relief="solid", padx=5, pady=2).pack(side="left", padx=2,
-                                                                                               pady=2)
+            tk.Label(tags_frame, text=tag, borderwidth=1, relief="solid", padx=5, pady=2).pack(side="left", padx=2,pady=2)
 
         if "Zawartość" in note_data:
             content_text = tk.Text(info_win, wrap="word", height=10)
