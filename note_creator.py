@@ -5,6 +5,7 @@ from ttkbootstrap import Toplevel, Entry, Text, Button, Frame, Label, Combobox
 from tkinter import colorchooser
 import datetime
 
+
 class NoteCreator(Toplevel):
     def __init__(self, parent, categories=None, on_save=None):
         super().__init__(parent)
@@ -14,7 +15,6 @@ class NoteCreator(Toplevel):
         self.categories = categories if categories else []
         self.on_save = on_save
         self.tags = []
-
         self.create_widgets()
         self.protocol("WM_DELETE_WINDOW", self.close_window)
 

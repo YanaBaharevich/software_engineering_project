@@ -33,7 +33,7 @@ app.columnconfigure(1, weight=1)  # Prawa
 app.rowconfigure(1, weight=0)
 app.rowconfigure(2, weight=1)     # Zona notatek
 
-top_frame = tb.Frame(app)
+top_frame = tk.Frame(app)
 top_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=10, pady=10)
 top_frame.columnconfigure(0, weight=3)
 top_frame.columnconfigure(1, weight=1)
@@ -77,7 +77,6 @@ empty_label.grid(row=0, column=0, sticky="nsew")
 notes_container = tk.Frame(notes_frame)
 notes_container.grid(row=0, column=0, sticky="nsew")
 
-
 max_columns = 4
 note_count = 0
 
@@ -86,7 +85,7 @@ def display_note(note_data):
     global note_count
     row = note_count // max_columns
     column = max_columns - 1 - (note_count % max_columns)
-    bg_color = note_data.get("color", "#FFFFFF")
+    bg_color = note_data.get("Kolor", "#FFFFFF")
 
     note_frame = tk.Frame(
         notes_container,
