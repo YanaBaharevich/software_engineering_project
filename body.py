@@ -197,6 +197,7 @@ def display_note(note_data):
             relief="solid"
         )
         tag_label.pack(side="left", padx=3)
+    note_frame.custom_bg_color = bg_color
 
     category_label = tk.Label(
         note_frame,
@@ -359,11 +360,21 @@ btn_left_1.config(command=open_note_creator)
 btn_left_2.config(command=toggle_delete_mode)
 btn_left_3.config(command=toggle_edit_mode)
 
-
+def refresh_notes_colors():
+    for note_frame in notes_container.winfo_children():
+        bg_color = getattr(note_frame, "custom_bg_color", "#FFFFFF")
+        note_frame.configure(bg=bg_color)
+        for child in note_frame.winfo_children():
+            try:
+                child.configure(bg=bg_color)
+            except:
+                pass
 def toggle_theme():
     current_theme = app.style.theme_use()
-    new_theme = "vapor" if current_theme != "vapor" else "darkly"
+    new_theme = "vapor" if current_theme != "vapor" else "morph"
     app.style.theme_use(new_theme)
+    refresh_notes_colors()
+
 
 
 btn_right_1.config(command=toggle_theme)
