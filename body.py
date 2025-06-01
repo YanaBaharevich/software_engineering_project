@@ -375,10 +375,6 @@ def toggle_theme():
     app.style.theme_use(new_theme)
     refresh_notes_colors()
 
-
-
-btn_right_1.config(command=toggle_theme)
-
 def integrate_calendar():
     tk.messagebox.showinfo("Integracja z kalendarzem", "Funkcja w budowie")
 
@@ -386,7 +382,7 @@ def integrate_calendar():
 def export_pdf():
     tk.messagebox.showinfo("Eksport do PDF", "Funkcja w budowie")
 
-
+btn_right_1.config(command=toggle_theme)
 btn_right_2.config(command=integrate_calendar)
 btn_right_3.config(command=export_pdf)
 
