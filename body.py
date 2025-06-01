@@ -103,6 +103,7 @@ def display_note(note_data):
     )
     note_frame.grid(row=row, column=column, padx=10, pady=10)
     note_frame.pack_propagate(False)
+    note_frame.configure(bg=bg_color)
 
     def on_enter(e):
         note_frame.config(relief="solid", borderwidth=3)
@@ -134,7 +135,13 @@ def display_note(note_data):
             content_text.insert("1.0", note_data["Zawartość"])
             content_text.config(state="disabled")
     def on_click(e):
-        open_note_info(note_data)
+        if is_deleting:
+            confirm_delete(note_data)
+        elif is_editing:
+            open_note_editor(note_data)
+        else:
+            open_note_info(note_data)
+
 
     note_frame.bind("<Button-1>", on_click)
 
@@ -194,8 +201,82 @@ def open_note_creator():
     note_creator = NoteCreator(app, categories=["Praca", "Osobiste", "Nauka"], on_save=on_save)
     note_creator.grab_set()
 
+def remove_note(note_data):
+    global is_deleting
+    notes = load_notes()
+    notes = [note for note in notes if note.get("id") != note_data.get("id")]
+
+    with open(NOTES_FILE, "w", encoding="utf-8") as f:
+        json.dump(notes, f, ensure_ascii=False, indent=4)
+
+    for widget in notes_container.winfo_children():
+        widget.destroy()
+
+    global note_count
+    note_count = 0
+    load_saved_notes()
+
+    is_deleting = False
+    btn_left_2.config(bootstyle="danger-outline")
+
+is_deleting = False
+def toggle_delete_mode():
+    global is_deleting
+    is_deleting = not is_deleting
+    if is_deleting:
+        btn_left_2.config(bootstyle="danger")
+    else:
+        btn_left_2.config(bootstyle="danger-outline")
+
+def confirm_delete(note_data):
+    confirm_win = tk.Toplevel(app)
+    confirm_win.title("Potwierdzenie usunięcia")
+    confirm_win.geometry("300x150")
+    confirm_win.grab_set()
+
+    tk.Label(confirm_win, text=f"Czy na pewno chcesz usunąć notatkę: {note_data['Tytuł']}?", font=("Arial", 12)).pack(pady=10)
+
+    btn_yes = tk.Button(confirm_win, text="Tak", command=lambda: [remove_note(note_data), confirm_win.destroy()])
+    btn_no = tk.Button(confirm_win, text="Nie", command=confirm_win.destroy)
+
+    btn_yes.pack(side="left", padx=20, pady=10)
+    btn_no.pack(side="right", padx=20, pady=10)
+
+is_editing = False
+def toggle_edit_mode():
+    global is_editing
+    is_editing = not is_editing
+    if is_editing:
+        btn_left_3.config(bootstyle="primary")
+    else:
+        btn_left_3.config(bootstyle="primary-outline")
+
+def open_note_editor(note_data):
+    def on_save_edited_note(updated_note_data):
+        notes = load_notes()
+        for i, note in enumerate(notes):
+            if note.get("id") == updated_note_data.get("id"):
+                notes[i] = updated_note_data
+                break
+
+        with open(NOTES_FILE, "w", encoding="utf-8") as f:
+            json.dump(notes, f, ensure_ascii=False, indent=4)
+
+        for widget in notes_container.winfo_children():
+            widget.destroy()
+
+        global note_count
+        note_count = 0
+        load_saved_notes()
+        toggle_edit_mode()
+
+    NoteCreator(app, categories=["Praca", "Osobiste", "Nauka"], on_save=on_save_edited_note, note_data=note_data).grab_set()
+
+
 
 btn_left_1.config(command=open_note_creator)
+btn_left_2.config(command=toggle_delete_mode)
+btn_left_3.config(command=toggle_edit_mode)
 load_saved_notes()
 app.mainloop()
 

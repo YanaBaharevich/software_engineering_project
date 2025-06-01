@@ -7,7 +7,7 @@ import datetime
 
 last_id = 0
 class NoteCreator(Toplevel):
-    def __init__(self, parent, categories=None, on_save=None):
+    def __init__(self, parent, categories=None, on_save=None, note_data=None):
         super().__init__(parent)
         self.title("Notatka")
         self.geometry("1000x500")
@@ -15,8 +15,13 @@ class NoteCreator(Toplevel):
         self.categories = categories if categories else []
         self.on_save = on_save
         self.tags = []
+        self.note_data = note_data
+
         self.create_widgets()
         self.protocol("WM_DELETE_WINDOW", self.close_window)
+
+        if self.note_data:
+            self.load_note_data()
 
     def create_widgets(self):
         self.columnconfigure(0, weight=3)
@@ -75,9 +80,14 @@ class NoteCreator(Toplevel):
 
     def save_note(self):
         global last_id
-        last_id += 1
+        if self.note_data:
+            note_id = self.note_data["id"]  # Pobierz istniejące ID
+        else:
+            last_id += 1
+            note_id = last_id
+
         note_data = {
-            "id": last_id,
+            "id": note_id,
             "Tytuł": self.title_entry.get().strip(),
             "Zawartość": self.text_entry.get("1.0", "end-1c").strip(),
             "Kategoria": self.category_var.get(),
@@ -85,7 +95,7 @@ class NoteCreator(Toplevel):
             "KodPIN": self.pin_entry.get().strip(),
             "Przypomnienie": self.reminder_entry.get().strip(),
             "Kolor": self.selected_color,
-            "created": datetime.datetime.now().strftime("%Y-%m-%d"),
+            "created": self.note_data["created"] if self.note_data else datetime.datetime.now().strftime("%Y-%m-%d"),
             "modified": datetime.datetime.now().strftime("%Y-%m-%d")
         }
         if self.on_save:
@@ -141,5 +151,16 @@ class NoteCreator(Toplevel):
 
             self.wait_window(popup)
 
+    def load_note_data(self):
+        self.title_entry.insert(0, self.note_data.get("Tytuł", ""))
+        self.text_entry.insert("1.0", self.note_data.get("Zawartość", ""))
+        self.category_var.set(self.note_data.get("Kategoria", ""))
+        self.tags = self.note_data.get("Tagi", [])
+        self.pin_entry.insert(0, self.note_data.get("KodPIN", ""))
+        self.reminder_entry.insert(0, self.note_data.get("Przypomnienie", ""))
+        self.selected_color = self.note_data.get("Kolor", "#FFFFFF")
+
     def close_window(self):
         self.destroy()
+
+
