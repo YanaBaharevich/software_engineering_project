@@ -297,12 +297,14 @@ is_deleting = False
 
 
 def toggle_delete_mode():
-    global is_deleting
+    global is_deleting, is_editing
+
+    if is_editing:  
+        is_editing = False
+        btn_left_3.config(bootstyle="primary-outline")
+
     is_deleting = not is_deleting
-    if is_deleting:
-        btn_left_2.config(bootstyle="danger")
-    else:
-        btn_left_2.config(bootstyle="danger-outline")
+    btn_left_2.config(bootstyle="danger" if is_deleting else "danger-outline")
 
 
 def confirm_delete(note_data):
@@ -325,12 +327,14 @@ is_editing = False
 
 
 def toggle_edit_mode():
-    global is_editing
+    global is_editing, is_deleting
+
+    if is_deleting:  
+        is_deleting = False
+        btn_left_2.config(bootstyle="danger-outline")
+
     is_editing = not is_editing
-    if is_editing:
-        btn_left_3.config(bootstyle="primary")
-    else:
-        btn_left_3.config(bootstyle="primary-outline")
+    btn_left_3.config(bootstyle="primary" if is_editing else "primary-outline")
 
 
 def open_note_editor(note_data):
@@ -386,6 +390,6 @@ btn_right_1.config(command=toggle_theme)
 btn_right_2.config(command=integrate_calendar)
 btn_right_3.config(command=export_pdf)
 
-load_saved_notes()
-
-app.mainloop()
+if __name__ == "__main__":
+    load_saved_notes()
+    app.mainloop()
