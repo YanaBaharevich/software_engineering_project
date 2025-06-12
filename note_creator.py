@@ -81,7 +81,7 @@ class NoteCreator(Toplevel):
     def save_note(self):
         global last_id
         if self.note_data:
-            note_id = self.note_data["id"]  # Pobierz istniejące ID
+            note_id = self.note_data["id"]
         else:
             last_id += 1
             note_id = last_id
