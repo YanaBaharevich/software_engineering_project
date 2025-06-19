@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-import tkinter.messagebox as messagebox
-from ttkbootstrap import Toplevel, Entry, Text, Button, Frame, Label, Combobox
+from ttkbootstrap import Toplevel, Entry, Text, Button, Frame, Label
 from tkinter import colorchooser
 import datetime
 
@@ -11,7 +10,7 @@ class NoteCreator(Toplevel):
         super().__init__(parent)
         self.title("Notatka")
         self.geometry("1000x500")
-        self.minsize(1400, 800)
+        self.minsize(1400, 910)
         self.categories = categories if categories else []
         self.on_save = on_save
         self.tags = []
@@ -70,7 +69,7 @@ class NoteCreator(Toplevel):
         self.category_combo.bind("<<ComboboxSelected>>", self.category_selected)
 
         self.ok_btn = Button(self, text="OK", command=self.save_note)
-        self.ok_btn.grid(row=1, column=1, sticky="e", padx=10, pady=10)
+        self.ok_btn.grid(row=0, column=1, sticky="se", padx=10, pady=10)
 
     def choose_color(self):
         color = colorchooser.askcolor()[1]
@@ -105,7 +104,7 @@ class NoteCreator(Toplevel):
     def add_tag_popup(self):
         popup = Toplevel(self)
         popup.title("Dodaj tag")
-        popup.geometry("250x100")
+        popup.geometry("250x135")
         popup.transient(self)
         popup.grab_set()
 
@@ -130,7 +129,7 @@ class NoteCreator(Toplevel):
         if self.category_var.get() == "Dodaj nową...":
             popup = Toplevel(self)
             popup.title("Nowa kategoria")
-            popup.geometry("250x100")
+            popup.geometry("250x135")
             popup.transient(self)
             popup.grab_set()
 
@@ -162,5 +161,4 @@ class NoteCreator(Toplevel):
 
     def close_window(self):
         self.destroy()
-
 

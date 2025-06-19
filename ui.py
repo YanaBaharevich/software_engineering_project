@@ -3,9 +3,10 @@ from tkinter import ttk
 from ttkbootstrap import Frame, Button
 from ttkbootstrap.constants import *
 from window import set_context, load_saved_notes
-from actions import toggle_delete_mode, toggle_edit_mode, toggle_theme, integrate_calendar, export_pdf
+from actions import toggle_delete_mode, toggle_edit_mode, toggle_theme, integrate_database, export_pdf
 from note_creator import NoteCreator
-from storage import save_note_to_file, is_deleting, is_editing
+from storage import save_note_to_file, is_deleting, is_editing, set_editing, set_deleting
+
 
 def build_interface(app):
     app.style.configure('.', font=('Arial ', 13))
@@ -18,7 +19,6 @@ def build_interface(app):
     category_var = tk.StringVar()
     tags_var = tk.StringVar()
 
-    # Top buttons
     top_frame = tk.Frame(app)
     top_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=10, pady=10)
     top_frame.columnconfigure(0, weight=3)
@@ -38,7 +38,7 @@ def build_interface(app):
     right_buttons_frame.grid(row=0, column=1, sticky="e")
 
     btn_right_1 = Button(right_buttons_frame, text="Zmień tryb na jasny/ciemny", bootstyle="info-outline")
-    btn_right_2 = Button(right_buttons_frame, text="Zintegruj z kalendarzem", bootstyle="primary-outline")
+    btn_right_2 = Button(right_buttons_frame, text="Zapisz w bazie", bootstyle="primary-outline")
     btn_right_3 = Button(right_buttons_frame, text="Eksportuj do PDF", bootstyle="primary-outline")
     btn_right_1.pack(side="top", fill="x", pady=5)
     btn_right_2.pack(side="top", fill="x", pady=5)
@@ -77,6 +77,13 @@ def build_interface(app):
 
     set_context(notes_container, empty_label, app)
 
+    def refresh_notes():
+        filter_text = search_var.get()
+        category_filter = category_var.get()
+        tags_filter = [tag.strip() for tag in tags_var.get().split(",") if tag.strip()]
+        load_saved_notes(filter_text, category_filter, tags_filter)
+
+
     def on_filters_change(*args):
         filter_text = search_var.get()
         category_filter = category_var.get()
@@ -88,7 +95,8 @@ def build_interface(app):
             if empty_label.winfo_ismapped():
                 empty_label.grid_forget()
             save_note_to_file(note_data)
-            load_saved_notes()
+            refresh_notes()
+
         NoteCreator(app, categories=["Praca", "Osobiste", "Nauka"], on_save=on_save).grab_set()
 
     search_var.trace_add("write", on_filters_change)
@@ -96,9 +104,39 @@ def build_interface(app):
     tags_var.trace_add("write", on_filters_change)
 
     btn_left_1.config(command=open_note_creator)
-    btn_left_2.config(command=toggle_delete_mode)
-    btn_left_3.config(command=toggle_edit_mode)
+    btn_left_2.config(command=lambda: toggle_delete_mode(refresh_notes))
 
     btn_right_1.config(command=lambda: toggle_theme(app, refresh_notes_colors=load_saved_notes))
-    btn_right_2.config(command=integrate_calendar)
+    btn_right_2.config(command=integrate_database)
     btn_right_3.config(command=export_pdf)
+
+    delete_mode_on = False
+    edit_mode_on = False
+
+    def toggle_delete():
+        nonlocal delete_mode_on, edit_mode_on
+        delete_mode_on = not delete_mode_on
+        if delete_mode_on:
+            edit_mode_on = False
+            btn_left_2.configure(bootstyle="danger")
+            btn_left_3.configure(bootstyle="primary-outline")
+        else:
+            btn_left_2.configure(bootstyle="danger-outline")
+        refresh_notes()
+
+    from storage import set_editing, set_deleting
+
+    def toggle_edit():
+        nonlocal edit_mode_on, delete_mode_on
+        edit_mode_on = not edit_mode_on
+        set_editing(edit_mode_on)
+        set_deleting(False)
+
+        if edit_mode_on:
+            delete_mode_on = False
+            btn_left_3.configure(bootstyle="primary")
+            btn_left_2.configure(bootstyle="danger-outline")
+        else:
+            btn_left_3.configure(bootstyle="primary-outline")
+
+    btn_left_3.config(command=toggle_edit)

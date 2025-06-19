@@ -1,6 +1,7 @@
 import tkinter as tk
 from storage import load_notes, is_deleting, is_editing
-from actions import confirm_delete, open_note_editor
+from actions import confirm_delete, open_note_editor, reset_modes
+
 
 max_columns = 4
 note_count = 0
@@ -52,12 +53,14 @@ def display_note(note_data):
             content_text.config(state="disabled")
 
     def on_click(e):
-        if is_deleting:
-            confirm_delete(note_data)
-        elif is_editing:
+        if is_deleting():
+            confirm_delete(note_data, load_saved_notes)
+        elif is_editing():
             open_note_editor(note_data)
         else:
             open_note_info(note_data)
+        reset_modes()
+        load_saved_notes()
 
     note_frame.bind("<Button-1>", on_click)
 
